@@ -1,6 +1,5 @@
 package com.example.myapplication;
 
-
 import static java.security.AccessController.getContext;
 
 import androidx.appcompat.app.AlertDialog;
@@ -20,6 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
+    // Variables to track state and UI elements
     private int edges;
     private Button colors;
     private Button undo;
@@ -33,18 +33,20 @@ public class MainActivity extends AppCompatActivity {
     public static boolean polyActive;
     private MyCanvasView myCanvasView;
 
-
+    // onCreate method, where the activity is initialized
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Initialize the canvas and set initial state
         polyActive = false;
         recActive = false;
         circActive = false;
         pathActive = true;
 
+        // Set click listeners for buttons
         findViewById(R.id.resetButton).setOnClickListener(v -> myCanvasView.reset());
 
         myCanvasView = findViewById(R.id.myCanvasView);
@@ -55,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
         colors = findViewById(R.id.ColorsButton);
         poly = findViewById(R.id.polyButton);
 
+        // Set click listeners for shape selection buttons
         circle.setOnClickListener(view -> {
             circActive = true;
             pathActive = false;
@@ -83,20 +86,22 @@ public class MainActivity extends AppCompatActivity {
             polyActive = true;
 
             edges = 3;
-            polyDialog(MainActivity.this, 3);
+            polyDialog(MainActivity.this, 3); // Show dialog to choose number of edges for polygon
         });
 
+        // Set click listener for undo button
         undo.setOnClickListener(view -> {
             myCanvasView.undo();
             myCanvasView.invalidate();
         });
 
+        // Set click listener for color selection button
         colors.setOnClickListener(view -> {
             showDialog(MainActivity.this);
         });
-
     }
 
+    // Method to show color selection dialog
     private void showDialog(Context context) {
         LayoutInflater inflater = LayoutInflater.from(context);
         final android.view.View dialogView = inflater.inflate(R.layout.colors_dialog, null);
@@ -117,7 +122,6 @@ public class MainActivity extends AppCompatActivity {
         seekBarBlue.setMax(255);
 
         textView.setBackgroundColor(Color.rgb(0, 0, 0));
-
 
         AlertDialog alertDialog = new AlertDialog.Builder(context)
                 .setView(dialogView)
@@ -162,9 +166,9 @@ public class MainActivity extends AppCompatActivity {
             myCanvasView.setDrawColor(color[0]);
             myCanvasView.invalidate();
         });
-
     }
 
+    // Method to show dialog for selecting number of edges for polygon
     private void polyDialog(Context context, int progress) {
         LayoutInflater inflater = LayoutInflater.from(context);
         final android.view.View dialogView = inflater.inflate(R.layout.poly_dialog, null);
