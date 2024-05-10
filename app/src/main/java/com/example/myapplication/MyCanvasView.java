@@ -21,38 +21,42 @@ import java.util.List;
 
 public class MyCanvasView extends View {
 
-    private int edges;
-    private Shape shape;
-    private List<Shape> shapes;
-    private Paint mFramePaint;
-    private Paint cPaint;
-    private int mBackgroundColor;
-    private Canvas mExtraCanvas;
-    private Bitmap mExtraBitmap;
-    private Rect mFrame;
-    private float prevX, prevY;
-    private int drawColor;
-    private int cDrawColor;
-    private boolean isDrawn;
-    private boolean isFinished;
+    private int edges; // Number of edges for polygon
+    private Shape shape; // Current shape being drawn
+    private List<Shape> shapes; // List to hold all drawn shapes
+    private Paint mFramePaint; // Paint for the frame
+    private Paint cPaint; // Paint for drawing shapes
+    private int mBackgroundColor; // Background color of the canvas
+    private Canvas mExtraCanvas; // Canvas for drawing shapes off-screen
+    private Bitmap mExtraBitmap; // Bitmap for off-screen drawing
+    private Rect mFrame; // Frame surrounding the canvas
+    private float prevX, prevY; // Previous touch coordinates
+    private int drawColor; // Default drawing color
+    private int cDrawColor; // Current drawing color
+    private boolean isDrawn; // Flag to check if shape is drawn
+    private boolean isFinished; // Flag to check if shape drawing is finished
 
+    // Constructor
     MyCanvasView(Context context) {
         this(context, null);
     }
 
+    // Constructor with AttributeSet
     public MyCanvasView(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
 
-        mBackgroundColor =
-                ResourcesCompat.getColor(getResources(), R.color.teal_200, null);
+        // Initialize colors
+        mBackgroundColor = ResourcesCompat.getColor(getResources(), R.color.teal_200, null);
         drawColor = ResourcesCompat.getColor(getResources(), R.color.black, null);
         int frameColor = ResourcesCompat.getColor(getResources(), R.color.colorAccent, null);
 
+        // Initialize frame paint
         mFramePaint = new Paint();
         mFramePaint.setColor(frameColor);
         mFramePaint.setStyle(Paint.Style.STROKE);
         mFramePaint.setStrokeWidth(14);
 
+        // Initialize drawing paint
         cPaint = new Paint();
         cPaint.setColor(drawColor);
         cPaint.setAntiAlias(true);
@@ -70,36 +74,46 @@ public class MyCanvasView extends View {
         shapes = new ArrayList<>();
     }
 
+    // Called when the size of the view changes
     @Override
     protected void onSizeChanged(int width, int height,
                                  int oldWidth, int oldHeight) {
         super.onSizeChanged(width, height, oldWidth, oldHeight);
+
+        // Create off-screen bitmap and canvas
         mExtraBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         mExtraCanvas = new Canvas(mExtraBitmap);
         mExtraCanvas.drawColor(mBackgroundColor);
 
+        // Define the frame surrounding the canvas
         int inset = 40;
         mFrame = new Rect(inset, inset, width - inset, height - inset);
     }
 
+    // Called to draw the view
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
+        // Draw all shapes on the off-screen canvas
         mExtraCanvas.drawColor(mBackgroundColor);
-
         for (Shape s : shapes) {
             s.drawMe(mExtraCanvas);
         }
 
+        // If a shape is being drawn and finished, draw it on the off-screen canvas
         if (isFinished && shape != null) {
             shape.drawMe(mExtraCanvas);
         }
 
+        // Draw the off-screen canvas on the main canvas
         canvas.drawBitmap(mExtraBitmap, 0, 0, null);
+
+        // Draw the frame around the canvas
         canvas.drawRect(mFrame, mFramePaint);
     }
 
+    // Called when a touch event is detected
     private static final float TOUCH_TOLERANCE = 4;
 
     @Override
@@ -124,10 +138,12 @@ public class MyCanvasView extends View {
         return true;
     }
 
+    // Method called when touch begins
     private void touchStart(float x, float y) {
         prevX = x;
         prevY = y;
 
+        // Determine the type of shape to draw based on user selection
         if (pathActive)
             shape = new MyPath(prevX, prevY, cPaint);
         else if (circActive)
@@ -139,10 +155,12 @@ public class MyCanvasView extends View {
 
     }
 
+    // Method called when touch moves
     private void touchMove(float x, float y) {
         float dx = Math.abs(x - prevX);
         float dy = Math.abs(y - prevY);
 
+        // If touch movement is significant, update the shape being drawn
         if (dx >= TOUCH_TOLERANCE || dy >= TOUCH_TOLERANCE) {
             shape.update(x, y);
             invalidate();
@@ -150,7 +168,9 @@ public class MyCanvasView extends View {
         }
     }
 
+    // Method called when touch ends
     private void touchUp() {
+        // If drawing is finished, add the shape to the list of shapes drawn
         if (isFinished) {
             shapes.add(shape);
             isDrawn = true;
@@ -159,10 +179,12 @@ public class MyCanvasView extends View {
         }
     }
 
+    // Method to set the number of edges for polygon
     public void setEdges(int nEdges) {
         edges = nEdges;
     }
 
+    // Method to reset the canvas
     public void reset() {
         cPaint.setColor(ResourcesCompat.getColor(getResources(), R.color.black, null));
         shapes.clear();
@@ -170,6 +192,7 @@ public class MyCanvasView extends View {
         invalidate();
     }
 
+    // Method to set the drawing color
     public void setDrawColor(int color) {
         if (isDrawn) {
             cPaint = new Paint(cPaint);
@@ -178,6 +201,7 @@ public class MyCanvasView extends View {
         cPaint.setColor(color);
     }
 
+    // Method to undo the last drawn shape
     public void undo() {
         if (!shapes.isEmpty()) {
             shapes.remove(shapes.size() - 1);
